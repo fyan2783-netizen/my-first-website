@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎨 彩泥成语故事：第一集</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
+
+        :root {
+            --bg-paper: #f5f0e8;
+            --table: #e8d5c4;
+            --clay-farmer: #e67e22;
+            --clay-stump: #5d4037;
+            --clay-rabbit: #ffffff;
+            --clay-crop-live: #2ecc71;
+            --clay-crop-dead: #7f8c8d;
+            --text-main: #5d4a3e;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--bg-paper);
+            background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
+            font-family: 'ZCOOL KuaiLe', cursive;
+            height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; color: var(--text-main);
+        }
+
+        /* 游戏舞台 */
+        #stage {
+            position: relative;
+            width: 100vw; height: 100vh;
+            max-width: 414px;
+            overflow: hidden;
+            display: flex; flex-direction: column;
+            box-shadow: 0 0 50px rgba(0,0,0,0.1);
+        }
+
+        /* 顶部标题 */
+        #title-pannel {
+            position: absolute; top: 30px; width: 100%; text-align: center; z-index: 100;
+        }
+        .chalk-title { font-size: 1.8rem; text-shadow: 2px 2px #fff; opacity: 0.8; }
+
+        /* 黏土角色容器 */
+        #clay-world {
+            flex: 1; position: relative;
+            background: linear-gradient(to bottom, #f5f0e8 0%, #e8d5c4 100%);
+        }
+
+        /* 黏土样式通用 */
+        .clay {
+            position: absolute;
+            box-shadow: 2px 5px 15px rgba(0,0,0,0.2), inset -3px -3px 6px rgba(0,0,0,0.1), inset 3px 3px 8px rgba(255,255,255,0.4);
+            transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* 树桩 */
+        #stump {
+            width: 60px; height: 45px; background: var(--clay-stump);
+            border-radius: 15px 25px 10px 20px;
+            bottom: 25%; left: 60%; transform: translateX(-50%) scale(0);
+        }
+        #stump::before { /* 年轮 */
+            content: ''; position: absolute; top: 5px; left: 5px; right: 5px; height: 15px;
+            background: #8d6e63; border-radius: 50%; border: 2px solid #5d4037;
+        }
+
+        /* 农夫 */
+        #farmer {
+            width: 50px; height: 70px; background: var(--clay-farmer);
+            border-radius: 20px; bottom: 25%; left: -60px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        #farmer-head {
+            width: 40px; height: 40px; background: #ffccbc;
+            border-radius: 50%; position: absolute; top: -30px;
+        }
+        #farmer-hat {
+            width: 60px; height: 15px; background: #8d6e63;
+            border-radius: 50% 50% 0 0; position: absolute; top: -15px;
+        }
+
+        /* 兔子 */
+        #rabbit {
+            width: 35px; height: 25px; background: var(--clay-rabbit);
+            border-radius: 50% 50% 40% 40%;
+            bottom: 25%; right: -50px;
+            display: flex; justify-content: center;
+        }
+        .ear {
+            width: 8px; height: 25px; background: #fff;
+            border-radius: 10px; position: absolute; top: -20px;
+        }
+
+        /* 庄稼地 */
+        #field {
+            position: absolute; bottom: 10%; left: 0; width: 100%; height: 15%;
+            display: flex; justify-content: space-around; padding: 0 20px;
+        }
+        .crop {
+            width: 8px; height: 25px; background: var(--clay-crop-live);
+            border-radius: 5px; transition: 2s; transform-origin: bottom;
+        }
+
+        /* 字幕卡片 */
+        #subtitle-card {
+            position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%) translateY(150px);
+            width: 85%; background: white; padding: 15px; border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center;
+            transition: 0.5s; z-index: 200; font-size: 1.1rem;
+        }
+
+        /* 猜谜面板 */
+        #quiz-panel {
+            position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%) scale(0);
+            width: 90%; background: #fff; padding: 25px; border-radius: 30px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.2); z-index: 300;
+            display: flex; flex-direction: column; align-items: center; transition: 0.5s;
+        }
+        input {
+            width: 100%; padding: 12px; border: 3px solid var(--table);
+            border-radius: 15px; font-size: 1.3rem; text-align: center;
+            margin-bottom: 15px; outline: none; font-family: inherit;
+        }
+        .clay-btn {
+            background: #ff7675; color: white; border: none;
+            padding: 12px 40px; border-radius: 20px; font-size: 1.3rem;
+            box-shadow: 0 6px 0 #d63031; cursor: pointer; font-family: inherit;
+        }
+        .clay-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #d63031; }
+
+        /* 结局卡片 */
+        #moral-card {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            width: 85%; background: #fffde7; padding: 30px; border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3); z-index: 400; text-align: center;
+            border: 4px dashed #fdd835; transition: 0.5s;
+        }
+
+        /* 动画关键帧 */
+        @keyframes walk {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg) translateY(-5px); }
+        }
+        @keyframes jump {
+            0%, 100% { transform: translateY(0) rotate(0); }
+            50% { transform: translateY(-30px) rotate(-10deg); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .tear {
+            position: absolute; width: 8px; height: 12px; background: #81d4fa;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            top: 5px; opacity: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="stage">
+        <!-- 标题 -->
+        <div id="title-pannel">
+            <div class="chalk-title">🎨 彩泥成语故事</div>
+            <div style="color: #8e7a6d;">第一集</div>
+        </div>
+
+        <!-- 场景 -->
+        <div id="clay-world">
+            <!-- 庄稼地 -->
+            <div id="field">
+                <div class="crop clay"></div><div class="crop clay"></div>
+                <div class="crop clay"></div><div class="crop clay"></div>
+                <div class="crop clay"></div><div class="crop clay"></div>
+            </div>
+
+            <!-- 树桩 -->
+            <div id="stump" class="clay"></div>
+
+            <!-- 兔子 -->
+            <div id="rabbit" class="clay">
+                <div class="ear" style="left:5px"></div>
+                <div class="ear" style="right:5px"></div>
+            </div>
+
+            <!-- 农夫 -->
+            <div id="farmer" class="clay">
+                <div id="farmer-hat" class="clay"></div>
+                <div id="farmer-head" class="clay">
+                    <div id="tear-l" class="tear"></div>
+                </div>
+            </div>
+
+            <!-- 右上角天数 -->
+            <div id="day-tag" style="position:absolute; top:100px; right:30px; background:#fff; padding:5px 15px; border-radius:10px; box-shadow:3px 3px 0 var(--table); opacity:0; transition:0.5s; font-weight:bold;">第 1 天</div>
+        </div>
+
+        <!-- 字幕 -->
+        <div id="subtitle-card">从前，有一个勤劳的农夫...</div>
+
+        <!-- 猜谜 -->
+        <div id="quiz-panel">
+            <div style="font-size: 1.5rem; margin-bottom: 15px; color:#ff7675">这个成语是...？</div>
+            <input type="text" id="idiom-input" placeholder="输入四个字成语" autocomplete="off">
+            <button class="clay-btn" onclick="checkIdiom()">猜！</button>
+            <div id="hint-msg" style="margin-top:10px; font-size:0.9rem; color:#8e7a6d"></div>
+        </div>
+
+        <!-- 寓意卡 -->
+        <div id="moral-card">
+            <h2 style="color: #f57f17; margin-bottom: 15px;">📖 守株待兔</h2>
+            <p style="text-align: left; font-size: 1rem; line-height: 1.6; color: #5d4037;">
+                比喻不主动努力，心存侥幸，希望得到意外的收获。<br><br>
+                💡 告诉我们：<br>
+                只有主动付出，才会有真正的收获。
+            </p>
+            <button class="clay-btn" style="margin-top: 25px; background: #2ecc71; box-shadow: 0 6px 0 #27ae60;" onclick="location.reload()">再看一次</button>
+        </div>
+    </div>
+
+<script>
+    const farmer = document.getElementById('farmer');
+    const stump = document.getElementById('stump');
+    const rabbit = document.getElementById('rabbit');
+    const subtitle = document.getElementById('subtitle-card');
+    const dayTag = document.getElementById('day-tag');
+    const crops = document.querySelectorAll('.crop');
+
+    // 故事动作逻辑
+    function act(actNum) {
+        switch(actNum) {
+            case 1: // 农夫进场
+                stump.style.transform = 'translateX(-50%) scale(1)';
+                setTimeout(() => {
+                    farmer.style.left = '20%';
+                    farmer.style.animation = 'walk 0.6s infinite';
+                    showSub("从前，有个农夫在田里干活...");
+                }, 1000);
+                setTimeout(() => {
+                    farmer.style.animation = 'none';
+                    farmer.style.bottom = '23%'; // 蹲下
+                    act(2);
+                }, 3000);
+                break;
+
+            case 2: // 兔子撞树
+                setTimeout(() => {
+                    showSub("突然，一只兔子飞快地跑来...");
+                    rabbit.style.right = '80%';
+                    rabbit.style.animation = 'jump 0.4s infinite';
+                }, 1000);
+                setTimeout(() => {
+                    // 撞击瞬间
+                    document.getElementById('stage').style.animation = 'shake 0.2s 3';
+                    rabbit.style.animation = 'none';
+                    rabbit.style.transform = 'rotate(180deg) translateY(20px)';
+                    rabbit.style.right = '45%';
+                    showSub("砰！兔子一头撞在树桩上，死了。");
+                }, 2500);
+                setTimeout(() => {
+                    showSub("农夫捡起兔子，心想：这太走运了！");
+                    farmer.style.left = '45%';
+                    act(3);
+                }, 4500);
+                break;
+
+            case 3: // 漫长等待
+                setTimeout(() => {
+                    showSub("从此，他放下锄头，每天守在树桩旁。");
+                    rabbit.style.opacity = '0';
+                    farmer.style.left = '40%';
+                    farmer.style.bottom = '23%';
+                }, 1000);
+                // 天数流逝
+                let days = 1;
+                const timer = setInterval(() => {
+                    days++;
+                    dayTag.innerText = `第 ${days} 天`;
+                    dayTag.style.opacity = '1';
+                    // 庄稼枯萎
+                    if(days <= 6) {
+                        crops.forEach(c => {
+                            c.style.background = '#7f8c8d';
+                            c.style.transform = `rotate(${days * 15}deg)`;
+                        });
+                    }
+                    if(days >= 6) {
+                        clearInterval(timer);
+                        act(4);
+                    }
+                }, 800);
+                break;
+
+            case 4: // 后悔莫及
+                setTimeout(() => {
+                    showSub("日子一天天过去，再也没有兔子来过。");
+                }, 500);
+                setTimeout(() => {
+                    showSub("而田里的庄稼，全都枯死了。");
+                    document.getElementById('tear-l').style.opacity = '1';
+                    document.getElementById('tear-l').style.top = '25px';
+                    document.getElementById('tear-l').style.transition = '2s';
+                }, 2500);
+                setTimeout(() => {
+                    document.getElementById('quiz-panel').style.transform = 'translateX(-50%) scale(1)';
+                    subtitle.style.transform = 'translateX(-50%) translateY(150px)';
+                }, 4500);
+                break;
+        }
+    }
+
+    function showSub(txt) {
+        subtitle.style.transform = 'translateX(-50%) translateY(0)';
+        subtitle.innerText = txt;
+    }
+
+    let wrongCount = 0;
+    function checkIdiom() {
+        const input = document.getElementById('idiom-input').value.trim();
+        if (input === '守株待兔') {
+            document.getElementById('quiz-panel').style.transform = 'translateX(-50%) scale(0)';
+            document.getElementById('moral-card').style.transform = 'translate(-50%, -50%) scale(1)';
+        } else {
+            wrongCount++;
+            const hints = ["提示：跟兔子和树有关 🐰🌳", "提示：比喻不劳而获、等待运气的人", "再想想，四个字，首字是'守'"];
+            document.getElementById('hint-msg').innerText = hints[Math.min(wrongCount-1, 2)];
+            document.getElementById('quiz-panel').style.animation = 'shake 0.3s';
+            setTimeout(() => document.getElementById('quiz-panel').style.animation = 'none', 300);
+        }
+    }
+
+    // 自动播放
+    window.onload = () => setTimeout(() => act(1), 500);
+
+    // 回车支持
+    document.getElementById('idiom-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') checkIdiom();
+    });
+</script>
+</body>
+</html>
