@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🎮 彩泥游戏大厅</title>
+  <style>
+    /* 全局彩泥质感基调 */
+    :root {
+      --bg-paper: #f6f1eb;
+      --card-bg: #ffffff;
+      --card-border: #f0e6da;
+      --shadow-color: #e0d5c8;
+      --text-main: #5c4a3e;
+      --text-muted: #968375;
+      --clay-orange: #ff7675;
+      --clay-green: #2ecc71;
+      --clay-gray: #b2bec3;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-paper);
+      /* 模拟手工卡纸纤维纹理 */
+      background-image: 
+        radial-gradient(#e5dbce 1px, transparent 1px),
+        radial-gradient(#e5dbce 1px, var(--bg-paper) 1px);
+      background-size: 20px 20px;
+      background-position: 0 0, 10px 10px;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* 手机端主容器 */
+    .lobby-container {
+      width: 100%;
+      max-width: 414px;
+      padding: 20px 16px 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-height: 100vh;
+    }
+
+    /* 顶部 Title 标牌 */
+    .header {
+      text-align: center;
+      padding: 12px;
+      background: #ffffff;
+      border-radius: 20px 24px 18px 22px;
+      box-shadow: 
+        0 6px 0px var(--shadow-color),
+        0 10px 20px rgba(0,0,0,0.05),
+        inset 0 0 0 2px var(--card-border);
+      transform: rotate(-1deg);
+    }
+
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--text-main);
+      letter-spacing: 1px;
+    }
+
+    .header p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* 2 列网格布局 */
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+
+    /* 游戏卡片样式 */
+    .game-card {
+      position: relative;
+      background: var(--card-bg);
+      border-radius: 20px 16px 18px 22px;
+      padding: 14px 12px;
+      min-height: 145px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 3px solid var(--card-border);
+      box-shadow: 
+        0 5px 0px var(--shadow-color),
+        0 8px 15px rgba(0,0,0,0.04),
+        inset -2px -2px 4px rgba(0,0,0,0.03);
+      cursor: pointer;
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease;
+    }
+
+    .game-card:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 
+        0 8px 0px var(--shadow-color),
+        0 12px 20px rgba(0,0,0,0.08);
+    }
+
+    .game-card:active {
+      transform: translateY(2px) scale(0.98);
+      box-shadow: 0 2px 0px var(--shadow-color);
+    }
+
+    /* 禁用状态卡片 */
+    .game-card.disabled {
+      opacity: 0.55;
+      filter: grayscale(0.6);
+      cursor: not-allowed;
+      border-style: dashed;
+    }
+
+    .game-card.disabled:hover {
+      transform: none;
+      box-shadow: 0 5px 0px var(--shadow-color);
+    }
+
+    /* 卡片内部结构 */
+    .card-emoji {
+      font-size: 2.2rem;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .card-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.25;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-desc {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* 删除按钮 */
+    .delete-btn {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      width: 26px;
+      height: 26px;
+      background: #ff7675;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: bold;
+      box-shadow: 0 3px 0 #d63031;
+      cursor: pointer;
+      z-index: 5;
+      transition: transform 0.1s;
+    }
+
+    .delete-btn:active {
+      transform: scale(0.9);
+    }
+
+    /* 「新增游戏」按钮 */
+    .add-card-btn {
+      background: #ff7675;
+      color: #ffffff;
+      font-size: 1.05rem;
+      font-weight: 800;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 20px 24px 18px 22px;
+      box-shadow: 
+        0 6px 0px #d63031,
+        0 10px 20px rgba(255, 118, 117, 0.3);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease;
+      margin-top: 6px;
+    }
+
+    .add-card-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 3px 0px #d63031;
+    }
+
+    /* 底部定制提示 */
+    .footer {
+      margin-top: auto;
+      text-align: center;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 16px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      border: 2px dashed #e0d5c8;
+    }
+
+    /* ---------------------------------- */
+    /* 弹窗 Modal 样式                    */
+    /* ---------------------------------- */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(45, 35, 25, 0.6);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 340px;
+      background: #fdfaf7;
+      border-radius: 24px 20px 26px 22px;
+      padding: 22px 20px;
+      box-shadow: 
+        0 15px 30px rgba(0,0,0,0.25),
+        inset 0 0 0 3px var(--card-border);
+      transform: scale(0.85);
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: scale(1);
+    }
+
+    .modal-title {
+      font-size: 1.2rem;
+      font-weight: 900;
+      text-align: center;
+      color: var(--text-main);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .form-group label {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid var(--card-border);
+      border-radius: 12px;
+      background: #ffffff;
+      font-size: 0.9rem;
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus {
+      border-color: var(--clay-orange);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 11px;
+      border: none;
+      border-radius: 14px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: transform 0.1s;
+    }
+
+    .btn-save {
+      background: var(--clay-green);
+      color: #fff;
+      box-shadow: 0 4px 0 #27ae60;
+    }
+
+    .btn-save:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #27ae60;
+    }
+
+    .btn-cancel {
+      background: var(--clay-gray);
+      color: #fff;
+      box-shadow: 0 4px 0 #636e72;
+    }
+
+    .btn-cancel:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #636e72;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="lobby-container">
+    <!-- 头部 -->
+    <header class="header">
+      <h1>🎮 彩泥游戏大厅</h1>
+      <p>点击卡片开始游戏 · 随时自由扩展</p>
+    </header>
+
+    <!-- 游戏卡片网格 -->
+    <div class="game-grid" id="gameGrid"></div>
+
+    <!-- 新增游戏按钮 -->
+    <button class="add-card-btn" id="openModalBtn">➕ 新增游戏</button>
+
+    <!-- 底部定制提示 -->
+    <footer class="footer">
+      🎁 想要定制专属游戏？私讯我
+    </footer>
+  </div>
+
+  <!-- 新增游戏弹窗 Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-card">
+      <div class="modal-title">✏️ 新增游戏</div>
+
+      <div class="form-group">
+        <label>🎨 图标 emoji</label>
+        <input type="text" id="inputEmoji" placeholder="🐰" maxlength="4">
+      </div>
+
+      <div class="form-group">
+        <label>📝 游戏名称</label>
+        <input type="text" id="inputName" placeholder="守株待兔">
+      </div>
+
+      <div class="form-group">
+        <label>💬 简短描述</label>
+        <input type="text" id="inputDesc" placeholder="成语故事动画">
+      </div>
+
+      <div class="form-group">
+        <label>🔗 文件名</label>
+        <input type="text" id="inputUrl" placeholder="shouzhu-daitu.html">
+      </div>
+
+      <div class="modal-actions">
+        <button class="modal-btn btn-save" id="saveBtn">✅ 保存</button>
+        <button class="modal-btn btn-cancel" id="cancelBtn">❌ 取消</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 预置初始卡片数据
+    const PRESET_GAMES = [
+      { id: 'p1', emoji: '🐰', name: '守株待兔', desc: '成语故事动画 · 看完猜成语', url: 'shouzhu-daitu.html', active: true, preset: true },
+      { id: 'p2', emoji: '🐱', name: '英语单词 · 动物篇', desc: '彩泥捏动物猜单词 · 8关', url: 'animals.html', active: true, preset: true },
+      { id: 'p3', emoji: '📜', name: '猜古诗词', desc: '皮影戏风格 · 即将上线', url: '', active: false, preset: true },
+      { id: 'p4', emoji: '🔤', name: 'Emoji 猜成语', desc: '即将上线', url: '', active: false, preset: true }
+    ];
+
+    const STORAGE_KEY = 'custom_clay_games';
+
+    // 获取本地存储的自定义卡片
+    function getCustomGames() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    // 保存自定义卡片到 localStorage
+    function saveCustomGames(games) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+      } catch (e) {
+        console.error('LocalStorage 保存失败', e);
+      }
+    }
+
+    // 渲染所有卡片（最新自定义卡片置顶）
+    function renderGames() {
+      const customGames = getCustomGames();
+      // 自定义卡片排列在前面（最新添加的在最前面），后面跟着预置卡片
+      const allGames = [...customGames, ...PRESET_GAMES];
+      const grid = document.getElementById('gameGrid');
+      grid.innerHTML = '';
+
+      allGames.forEach(game => {
+        const card = document.createElement('div');
+        card.className = `game-card ${!game.active ? 'disabled' : ''}`;
+
+        // 点击卡片跳转
+        if (game.active) {
+          card.addEventListener('click', (e) => {
+            // 如果点到删除按钮，阻止卡片跳转
+            if (e.target.classList.contains('delete-btn')) return;
+            window.location.href = game.url;
+          });
+        }
+
+        // 自定义卡片显示 ❌ 删除按钮
+        let deleteBtnHtml = '';
+        if (!game.preset) {
+          deleteBtnHtml = `<span class="delete-btn" data-id="${game.id}">❌</span>`;
+        }
+
+        card.innerHTML = `
+          ${deleteBtnHtml}
+          <div class="card-emoji">${game.emoji || '🎮'}</div>
+          <div class="card-info">
+            <div class="card-title">${escapeHtml(game.name)}</div>
+            <div class="card-desc">${escapeHtml(game.desc)}</div>
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+
+      // 绑定删除按钮事件
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const gameId = e.target.getAttribute('data-id');
+          deleteGame(gameId);
+        });
+      });
+    }
+
+    // 删除自定义卡片
+    function deleteGame(id) {
+      let customGames = getCustomGames();
+      customGames = customGames.filter(g => g.id !== id);
+      saveCustomGames(customGames);
+      renderGames();
+    }
+
+    // 防 XSS 转义
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // 弹窗控制
+    const modalOverlay = document.getElementById('modalOverlay');
+    const openModalBtn = document.getElementById('openModalBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const saveBtn = document.getElementById('saveBtn');
+
+    const inputEmoji = document.getElementById('inputEmoji');
+    const inputName = document.getElementById('inputName');
+    const inputDesc = document.getElementById('inputDesc');
+    const inputUrl = document.getElementById('inputUrl');
+
+    function openModal() {
+      modalOverlay.classList.add('active');
+      inputEmoji.focus();
+    }
+
+    function closeModal() {
+      modalOverlay.classList.remove('active');
+      // 重置表单
+      inputEmoji.value = '';
+      inputName.value = '';
+      inputDesc.value = '';
+      inputUrl.value = '';
+    }
+
+    // 保存新卡片
+    function handleSave() {
+      const emoji = inputEmoji.value.trim() || '🎮';
+      const name = inputName.value.trim();
+      const desc = inputDesc.value.trim() || '自定义游戏';
+      let url = inputUrl.value.trim();
+
+      if (!name) {
+        alert('请输入游戏名称哦！');
+        inputName.focus();
+        return;
+      }
+
+      if (!url) {
+        alert('请输入跳转的文件名！');
+        inputUrl.focus();
+        return;
+      }
+
+      // 如果用户没有写 .html 结尾，可以保留原样或自动补充
+      const newGame = {
+        id: 'custom_' + Date.now(),
+        emoji: emoji,
+        name: name,
+        desc: desc,
+        url: url,
+        active: true,
+        preset: false
+      };
+
+      // 最新添加的排在最前面
+      const customGames = getCustomGames();
+      customGames.unshift(newGame);
+      saveCustomGames(customGames);
+
+      renderGames();
+      closeModal();
+    }
+
+    // 事件绑定
+    openModalBtn.addEventListener('click', openModal);
+    cancelBtn.addEventListener('click', closeModal);
+    saveBtn.addEventListener('click', handleSave);
+
+    // 点击蒙版空白处关闭弹窗
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) closeModal();
+    });
+
+    // 页面初始化
+    renderGames();
+  </script>
+</body>
+</html>
