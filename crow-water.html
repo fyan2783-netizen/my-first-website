@@ -1,355 +1,167 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🎨 彩泥寓言故事：第二集</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
-
-        :root {
-            --bg-paper: #f5f0e8;
-            --table: #e8d5c4;
-            --clay-crow: #2c3e50; /* 深灰黑 */
-            --clay-beak: #f39c12; /* 橙色 */
-            --clay-pitcher: rgba(173, 216, 230, 0.6); /* 半透明浅蓝 */
-            --clay-water: #3498db; /* 深蓝色 */
-            --clay-stone: #7f8c8d; /* 灰色 */
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            background-color: var(--bg-paper);
-            background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
-            font-family: 'ZCOOL KuaiLe', cursive;
-            height: 100vh;
-            display: flex; justify-content: center; align-items: center;
-            overflow: hidden; color: #5d4a3e;
-        }
-
-        /* 游戏舞台 */
-        #stage {
-            position: relative;
-            width: 100vw; height: 100vh;
-            max-width: 414px;
-            overflow: hidden;
-            display: flex; flex-direction: column;
-            box-shadow: 0 0 50px rgba(0,0,0,0.1);
-        }
-
-        /* 顶部标题 */
-        #title-pannel {
-            position: absolute; top: 30px; width: 100%; text-align: center; z-index: 100;
-        }
-        .chalk-title { font-size: 1.8rem; text-shadow: 2px 2px #fff; opacity: 0.8; }
-
-        /* 黏土场景容器 */
-        #clay-world {
-            flex: 1; position: relative;
-            background: linear-gradient(to bottom, #f5f0e8 0%, #e8d5c4 100%);
-        }
-
-        /* 太阳 */
-        #sun {
-            position: absolute; top: 40px; right: -80px;
-            width: 60px; height: 60px; background: #f1c40f;
-            border-radius: 50%; box-shadow: 0 0 20px #f39c12;
-            transition: 2s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        /* 枯树 */
-        #tree {
-            position: absolute; bottom: 15%; left: -100px;
-            width: 15px; height: 150px; background: #5d4037;
-            border-radius: 10px; transition: 1.5s;
-        }
-        #tree::before { /* 树枝 */
-            content: ''; position: absolute; top: 30px; right: -20px;
-            width: 30px; height: 8px; background: #5d4037; transform: rotate(-30deg); border-radius: 5px;
-        }
-
-        /* 黏土共通阴影 */
-        .clay {
-            box-shadow: 2px 4px 10px rgba(0,0,0,0.2), inset -3px -3px 6px rgba(0,0,0,0.1), inset 3px 3px 8px rgba(255,255,255,0.4);
-        }
-
-        /* 乌鸦 */
-        #crow {
-            position: absolute; top: -100px; left: 20%;
-            width: 50px; height: 40px; background: var(--clay-crow);
-            border-radius: 45% 55% 50% 50%;
-            transition: all 1s ease; z-index: 50;
-        }
-        #crow-head {
-            position: absolute; top: -15px; left: 25px;
-            width: 30px; height: 30px; background: var(--clay-crow);
-            border-radius: 50%;
-        }
-        #crow-beak {
-            position: absolute; top: 5px; right: -20px;
-            width: 25px; height: 10px; background: var(--clay-beak);
-            clip-path: polygon(0 0, 100% 50%, 0 100%);
-            transition: 0.3s;
-        }
-        #crow-wing {
-            position: absolute; top: 5px; left: 5px;
-            width: 35px; height: 20px; background: var(--clay-crow);
-            border-radius: 50% 50% 20% 80%; transform-origin: top left;
-        }
-
-        /* 水瓶 */
-        #pitcher {
-            position: absolute; bottom: -150px; right: 20%;
-            width: 70px; height: 100px; background: var(--clay-pitcher);
-            border-radius: 30% 30% 20% 20% / 10% 10% 20% 20%;
-            border: 3px solid rgba(255,255,255,0.3);
-            transition: 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex; flex-direction: column; align-items: center;
-        }
-        #pitcher-neck {
-            width: 30px; height: 30px; background: var(--clay-pitcher);
-            margin-top: -15px; border-radius: 5px;
-            border: 2px solid rgba(255,255,255,0.3);
-        }
-        #water {
-            position: absolute; bottom: 5px; width: 60px; height: 20px;
-            background: var(--clay-water); border-radius: 10px;
-            transition: 0.5s ease-out;
-        }
-
-        /* 石子堆 */
-        #stones-pile {
-            position: absolute; bottom: 15%; left: 40%; display: flex; gap: 5px; opacity: 0; transition: 1s;
-        }
-        .stone {
-            width: 12px; height: 10px; background: var(--clay-stone);
-            border-radius: 40% 60% 50% 50%;
-        }
-
-        /* 思考灯泡 */
-        #bulb {
-            position: absolute; top: -50px; left: 20px; font-size: 2rem;
-            opacity: 0; transition: 0.5s;
-        }
-
-        /* 字幕卡片 */
-        #subtitle-card {
-            position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%) translateY(150px);
-            width: 85%; background: white; padding: 15px; border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center;
-            transition: 0.5s; z-index: 200; font-size: 1.1rem;
-        }
-
-        /* 猜谜面板 */
-        #quiz-panel {
-            position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%) scale(0);
-            width: 90%; background: #fff; padding: 25px; border-radius: 30px;
-            box-shadow: 0 15px 50px rgba(0,0,0,0.2); z-index: 300;
-            display: flex; flex-direction: column; align-items: center; transition: 0.5s;
-        }
-        input {
-            width: 100%; padding: 12px; border: 3px solid var(--table);
-            border-radius: 15px; font-size: 1.3rem; text-align: center;
-            margin-bottom: 15px; outline: none; font-family: inherit;
-        }
-        .clay-btn {
-            background: #ff7675; color: white; border: none;
-            padding: 12px 40px; border-radius: 20px; font-size: 1.3rem;
-            box-shadow: 0 6px 0 #d63031; cursor: pointer; font-family: inherit;
-        }
-        .clay-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #d63031; }
-
-        /* 寓意卡 */
-        #moral-card {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
-            width: 85%; background: #fffde7; padding: 30px; border-radius: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3); z-index: 400; text-align: center;
-            border: 4px dashed #fdd835; transition: 0.5s;
-        }
-
-        /* 动画 */
-        @keyframes fly { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-15px) rotate(5deg); } }
-        @keyframes wing { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-40deg); } }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
-        @keyframes successGlow { 0% { background: #fff; } 100% { background: #fdfaf7; } }
-    </style>
-</head>
-<body>
-
-    <div id="stage">
-        <div id="title-pannel">
-            <div class="chalk-title">🎨 彩泥寓言故事</div>
-            <div style="color: #8e7a6d;">第二集</div>
-        </div>
-
-        <div id="clay-world">
-            <div id="sun" class="clay"></div>
-            <div id="tree" class="clay"></div>
-            
-            <div id="pitcher" class="clay">
-                <div id="pitcher-neck"></div>
-                <div id="water"></div>
-                <div id="stones-inside" style="position: absolute; bottom: 5px; width: 100%; display: flex; flex-wrap: wrap-reverse; justify-content: center; padding: 0 10px; transition: 0.5s;"></div>
-            </div>
-
-            <div id="stones-pile">
-                <div class="stone clay"></div><div class="stone clay"></div>
-                <div class="stone clay"></div><div class="stone clay"></div>
-                <div class="stone clay"></div>
-            </div>
-
-            <div id="crow" class="clay">
-                <div id="bulb">💡</div>
-                <div id="crow-head" class="clay">
-                    <div id="crow-beak"></div>
-                    <div style="position: absolute; top: 5px; right: 5px; width: 5px; height: 5px; background: white; border-radius: 50%;"></div>
-                </div>
-                <div id="crow-wing" class="clay"></div>
-            </div>
-        </div>
-
-        <div id="subtitle-card">夏天好热呀，乌鸦飞了好久...</div>
-
-        <div id="quiz-panel">
-            <div style="font-size: 1.5rem; margin-bottom: 15px; color:#ff7675">这个故事叫什么名字？</div>
-            <input type="text" id="story-input" placeholder="输入故事名" autocomplete="off">
-            <button class="clay-btn" onclick="checkStory()">猜！</button>
-            <div id="hint-msg" style="margin-top:10px; font-size:0.9rem; color:#8e7a6d"></div>
-        </div>
-
-        <div id="moral-card">
-            <h2 style="color: #f57f17; margin-bottom: 15px;">📖 乌鸦喝水</h2>
-            <p style="text-align: left; font-size: 1rem; line-height: 1.6; color: #5d4037;">
-                遇到困难不要放弃。动脑筋想办法，再难的问题也能解决。<br><br>
-                💡 告诉我们：<br>
-                智慧 + 坚持 = 成功
-            </p>
-            <button class="clay-btn" style="margin-top: 25px; background: #2ecc71;" onclick="location.reload()">再看一次</button>
-        </div>
-    </div>
-
-<script>
-    const crow = document.getElementById('crow');
-    const crowWing = document.getElementById('crow-wing');
-    const sun = document.getElementById('sun');
-    const tree = document.getElementById('tree');
-    const pitcher = document.getElementById('pitcher');
-    const water = document.getElementById('water');
-    const stonesPile = document.getElementById('stones-pile');
-    const subtitle = document.getElementById('subtitle-card');
-    const bulb = document.getElementById('bulb');
-
-    function act(step) {
-        switch(step) {
-            case 1: // 入场
-                sun.style.right = '40px';
-                tree.style.left = '10%';
-                setTimeout(() => {
-                    crow.style.top = '30%';
-                    crow.style.animation = 'fly 1s infinite, wing 0.3s infinite alternate';
-                    showSub("夏天好热，乌鸦口渴极了...");
-                }, 1000);
-                setTimeout(() => {
-                    crow.style.animation = 'none';
-                    crow.style.top = '65%'; // 落地
-                    act(2);
-                }, 4000);
-                break;
-
-            case 2: // 发现水瓶
-                setTimeout(() => {
-                    pitcher.style.bottom = '15%';
-                    stonesPile.style.opacity = '1';
-                    showSub("它发现了一个水瓶，里面有一点点水！");
-                }, 1000);
-                setTimeout(() => {
-                    crow.style.left = '45%'; // 走到瓶边
-                    showSub("可是瓶口太窄了，它根本喝不着。");
-                }, 3000);
-                setTimeout(() => act(3), 5000);
-                break;
-
-            case 3: // 想出办法
-                setTimeout(() => {
-                    bulb.style.opacity = '1';
-                    bulb.style.top = '-60px';
-                    showSub("乌鸦看到地上的石子，想到了一个办法！");
-                }, 500);
-                setTimeout(() => {
-                    bulb.style.opacity = '0';
-                    act(4);
-                }, 2500);
-                break;
-
-            case 4: // 投石子过程 (加速蒙太奇)
-                let stoneCount = 0;
-                const dropInterval = setInterval(() => {
-                    stoneCount++;
-                    // 模拟乌鸦低头叼石子
-                    crow.style.transform = 'rotate(20deg)';
-                    setTimeout(() => crow.style.transform = 'rotate(0deg)', 200);
-
-                    // 增加瓶内石子
-                    const s = document.createElement('div');
-                    s.className = 'stone clay';
-                    s.style.width = '10px'; s.style.height = '8px';
-                    document.getElementById('stones-inside').appendChild(s);
-                    
-                    // 水位上升
-                    water.style.height = (20 + stoneCount * 12) + 'px';
-                    showSub(`投进第 ${stoneCount} 颗石子...水位上升了！`);
-
-                    if (stoneCount >= 6) {
-                        clearInterval(dropInterval);
-                        act(5);
-                    }
-                }, 1000);
-                break;
-
-            case 5: // 喝水
-                setTimeout(() => {
-                    showSub("终于，水升到了瓶口，乌鸦喝到了水！🎉");
-                    crow.style.left = '52%';
-                    crow.style.top = '62%';
-                    crow.style.transform = 'rotate(-15deg)'; // 低头喝水
-                }, 1000);
-                setTimeout(() => {
-                    document.getElementById('quiz-panel').style.transform = 'translateX(-50%) scale(1)';
-                    subtitle.style.transform = 'translateX(-50%) translateY(150px)';
-                }, 4000);
-                break;
-        }
+:root {
+        --bg-paper: #f5f0e8;
+        --table: #e8d5c4;
+        --clay-crow: #2c3e50; /* 深灰黑 */
+        --clay-beak: #f39c12; /* 橙色 */
+        --clay-pitcher: rgba(173, 216, 230, 0.6); /* 半透明浅蓝 */
+        --clay-water: #3498db; /* 深蓝色 */
+        --clay-stone: #7f8c8d; /* 灰色 */
     }
 
-    function showSub(txt) {
-        subtitle.style.transform = 'translateX(-50%) translateY(0)';
-        subtitle.innerText = txt;
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+        background-color: var(--bg-paper);
+        background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
+        font-family: 'ZCOOL KuaiLe', cursive;
+        height: 100vh;
+        display: flex; justify-content: center; align-items: center;
+        overflow: hidden; color: #5d4a3e;
     }
 
-    let wrongCount = 0;
-    function checkStory() {
-        const input = document.getElementById('story-input').value.trim();
-        const corrects = ['乌鸦喝水', '乌鸦饮水', '口渴的乌鸦'];
-        if (corrects.includes(input)) {
-            document.getElementById('quiz-panel').style.transform = 'translateX(-50%) scale(0)';
-            document.getElementById('moral-card').style.transform = 'translate(-50%, -50%) scale(1)';
-            document.getElementById('stage').style.animation = 'successGlow 1s infinite alternate';
-        } else {
-            wrongCount++;
-            const hints = ["提示：主角是一只黑色的鸟 🐦‍⬛", "提示：它把石子放进瓶子里...", "一共四个字，最后两个字是'喝水'"];
-            document.getElementById('hint-msg').innerText = hints[Math.min(wrongCount-1, 2)];
-            document.getElementById('quiz-panel').style.animation = 'shake 0.3s';
-            setTimeout(() => document.getElementById('quiz-panel').style.animation = 'none', 300);
-        }
+    /* 游戏舞台 */
+    #stage {
+        position: relative;
+        width: 100vw; height: 100vh;
+        max-width: 414px;
+        overflow: hidden;
+        display: flex; flex-direction: column;
+        box-shadow: 0 0 50px rgba(0,0,0,0.1);
     }
 
-    // 自动播放
-    window.onload = () => setTimeout(() => act(1), 500);
+    /* 顶部标题 */
+    #title-pannel {
+        position: absolute; top: 30px; width: 100%; text-align: center; z-index: 100;
+    }
+    .chalk-title { font-size: 1.8rem; text-shadow: 2px 2px #fff; opacity: 0.8; }
 
-    document.getElementById('story-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') checkStory();
-    });
-</script>
-</body>
-</html>
+    /* 黏土场景容器 */
+    #clay-world {
+        flex: 1; position: relative;
+        background: linear-gradient(to bottom, #f5f0e8 0%, #e8d5c4 100%);
+    }
+
+    /* 太阳 */
+    #sun {
+        position: absolute; top: 40px; right: -80px;
+        width: 60px; height: 60px; background: #f1c40f;
+        border-radius: 50%; box-shadow: 0 0 20px #f39c12;
+        transition: 2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* 枯树 */
+    #tree {
+        position: absolute; bottom: 15%; left: -100px;
+        width: 15px; height: 150px; background: #5d4037;
+        border-radius: 10px; transition: 1.5s;
+    }
+    #tree::before { /* 树枝 */
+        content: ''; position: absolute; top: 30px; right: -20px;
+        width: 30px; height: 8px; background: #5d4037; transform: rotate(-30deg); border-radius: 5px;
+    }
+
+    /* 黏土共通阴影 */
+    .clay {
+        box-shadow: 2px 4px 10px rgba(0,0,0,0.2), inset -3px -3px 6px rgba(0,0,0,0.1), inset 3px 3px 8px rgba(255,255,255,0.4);
+    }
+
+    /* 乌鸦 */
+    #crow {
+        position: absolute; top: -100px; left: 20%;
+        width: 50px; height: 40px; background: var(--clay-crow);
+        border-radius: 45% 55% 50% 50%;
+        transition: all 1s ease; z-index: 50;
+    }
+    #crow-head {
+        position: absolute; top: -15px; left: 25px;
+        width: 30px; height: 30px; background: var(--clay-crow);
+        border-radius: 50%;
+    }
+    #crow-beak {
+        position: absolute; top: 5px; right: -20px;
+        width: 25px; height: 10px; background: var(--clay-beak);
+        clip-path: polygon(0 0, 100% 50%, 0 100%);
+        transition: 0.3s;
+    }
+    #crow-wing {
+        position: absolute; top: 5px; left: 5px;
+        width: 35px; height: 20px; background: var(--clay-crow);
+        border-radius: 50% 50% 20% 80%; transform-origin: top left;
+    }
+
+    /* 水瓶 */
+    #pitcher {
+        position: absolute; bottom: -150px; right: 20%;
+        width: 70px; height: 100px; background: var(--clay-pitcher);
+        border-radius: 30% 30% 20% 20% / 10% 10% 20% 20%;
+        border: 3px solid rgba(255,255,255,0.3);
+        transition: 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: flex; flex-direction: column; align-items: center;
+    }
+    #pitcher-neck {
+        width: 30px; height: 30px; background: var(--clay-pitcher);
+        margin-top: -15px; border-radius: 5px;
+        border: 2px solid rgba(255,255,255,0.3);
+    }
+    #water {
+        position: absolute; bottom: 5px; width: 60px; height: 20px;
+        background: var(--clay-water); border-radius: 10px;
+        transition: 0.5s ease-out;
+    }
+
+    /* 石子堆 */
+    #stones-pile {
+        position: absolute; bottom: 15%; left: 40%; display: flex; gap: 5px; opacity: 0; transition: 1s;
+    }
+    .stone {
+        width: 12px; height: 10px; background: var(--clay-stone);
+        border-radius: 40% 60% 50% 50%;
+    }
+
+    /* 思考灯泡 */
+    #bulb {
+        position: absolute; top: -50px; left: 20px; font-size: 2rem;
+        opacity: 0; transition: 0.5s;
+    }
+
+    /* 字幕卡片 */
+    #subtitle-card {
+        position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%) translateY(150px);
+        width: 85%; background: white; padding: 15px; border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center;
+        transition: 0.5s; z-index: 200; font-size: 1.1rem;
+    }
+
+    /* 猜谜面板 */
+    #quiz-panel {
+        position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%) scale(0);
+        width: 90%; background: #fff; padding: 25px; border-radius: 30px;
+        box-shadow: 0 15px 50px rgba(0,0,0,0.2); z-index: 300;
+        display: flex; flex-direction: column; align-items: center; transition: 0.5s;
+    }
+    input {
+        width: 100%; padding: 12px; border: 3px solid var(--table);
+        border-radius: 15px; font-size: 1.3rem; text-align: center;
+        margin-bottom: 15px; outline: none; font-family: inherit;
+    }
+    .clay-btn {
+        background: #ff7675; color: white; border: none;
+        padding: 12px 40px; border-radius: 20px; font-size: 1.3rem;
+        box-shadow: 0 6px 0 #d63031; cursor: pointer; font-family: inherit;
+    }
+    .clay-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #d63031; }
+
+    /* 寓意卡 */
+    #moral-card {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+        width: 85%; background: #fffde7; padding: 30px; border-radius: 30px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3); z-index: 400; text-align: center;
+        border: 4px dashed #fdd835; transition: 0.5s;
+    }
+
+    /* 动画 */
+    @keyframes fly { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-15px) rotate(5deg); } }
+    @keyframes wing { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-40deg); } }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+    @keyframes successGlow { 0% { background: #fff; } 100% { background: #fdfaf7; } }
+</style>
